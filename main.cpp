@@ -10,6 +10,8 @@ auto wrap_fn(F&& fn) {
 	return [f = std::move(fn)](std::string_view input) mutable
 	{
 		using args_as_tuple_t = typename DecomposedCallable<std::decay_t<F>>::args_tuple_t;
+		//TODO, the extracted callable parameter Args need to be remove_cvref'ed:
+		//https://en.cppreference.com/w/cpp/types/remove_cvref to make the allowed space better
 		args_as_tuple_t res;
 		auto begin = input.cbegin();
 		bool got_match = false;
@@ -38,8 +40,6 @@ auto wrap_fn(F&& fn) {
 void qweqwe(std::string a, uint32_t b) {
 	std::cout << "qweqwe invoked!\nWith Args:\n  a: " << a << "\n  b: " << b << "\n";
 }
-
-
 
 int main() {
 	auto ret = wrap_fn(&qweqwe);
