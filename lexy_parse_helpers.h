@@ -72,9 +72,9 @@ template<typename T>
 struct parse_helper<std::vector<T>> {
 	static constexpr auto whitespace = lexy::dsl::ascii::space;
 	static constexpr auto rule = //lexy::dsl::square_bracketed(
-			lexy::dsl::lit_c<'['>
-			+lexy::dsl::list(lexy::dsl::p<parse_helper<T>>, lexy::dsl::lit_c<','>)
-			+ lexy::dsl::lit_c<']'>;
+		lexy::dsl::lit_c<'['>
+		+lexy::dsl::list(lexy::dsl::p<parse_helper<T>>, lexy::dsl::lit_c<','>)
+		+ lexy::dsl::lit_c<']'>;
 	static constexpr auto value = lexy::as_list<std::vector<T>>;
 };
 
@@ -82,10 +82,10 @@ template<>
 struct parse_helper<std::string> {
 	//TODO handle escapes: https://lexy.foonathan.net/reference/callback/string/#as_string
 	//No automatic whitespace handling here
-	static constexpr auto rule = []() { 
+	static constexpr auto rule = []() {
 		auto ws = lexy::dsl::whitespace(lexy::dsl::ascii::space);
 		return ws + lexy::dsl::quoted(lexy::dsl::ascii::character) + ws; }();
-	static constexpr auto value = lexy::as_string<std::string>;
+		static constexpr auto value = lexy::as_string<std::string>;
 };
 
 template<typename T>
@@ -95,14 +95,14 @@ struct parse_helper<std::optional<T>>
 	static constexpr auto rule = lexy::dsl::p<parse_helper<T>> | LEXY_LIT("None");
 	static constexpr auto value = lexy::callback<std::optional<T>>(
 		[]() { return std::nullopt; }
-	, [](const T& t) { return t; });
+	, [](auto&& t) { return std::move(t); });
 };
 
 template<typename First, typename... Rest>
 struct parse_helper<First, Rest...> {
 	static constexpr auto whitespace = lexy::dsl::ascii::space;
 	static constexpr auto rule = lexy::dsl::p<parse_helper<First>> +
-			((lexy::dsl::lit_c<','> +lexy::dsl::p<parse_helper<Rest>>) + ...);
+		((lexy::dsl::lit_c<','> +lexy::dsl::p<parse_helper<Rest>>) + ...);
 	static constexpr auto value = lexy::construct<std::tuple<First, Rest...>>;
 };
 
@@ -110,16 +110,23 @@ template<typename... Args>
 struct parse_helper<std::tuple<Args...>>
 {
 	static constexpr auto whitespace = lexy::dsl::ascii::space;
-	static constexpr auto rule = lexy::dsl::parenthesized(lexy::dsl::p<parse_helper<Args...>>);
-	static constexpr auto value = lexy::construct<std::tuple<Args...>>;
+	static constexpr auto rule = []() {
+		if constexpr (sizeof...(Args) == 0)
+			return lexy::dsl::parenthesized(lexy::dsl::nullopt);
+		else
+			return lexy::dsl::parenthesized(lexy::dsl::p<parse_helper<Args...>>);
+	}();
+	static constexpr auto value = lexy::callback<std::tuple<Args...>>(
+		[](lexy::nullopt) { return std::tuple<Args...>{}; }
+	, [](auto&& t) { return std::move(t); });
 };
 
 template<typename T, size_t N>
-struct parse_helper<std::array<T,N>>
+struct parse_helper<std::array<T, N>>
 {
 	static constexpr auto whitespace = lexy::dsl::ascii::space;
 	static constexpr auto rule = lexy::dsl::square_bracketed(lexy::dsl::times<N>(lexy::dsl::p<parse_helper<T>>, lexy::dsl::sep(lexy::dsl::comma)));
-	static constexpr auto value = lexy::construct<std::array<T,N>>;
+	static constexpr auto value = lexy::construct<std::array<T, N>>;
 };
 
 template<typename C, typename I, typename T>
@@ -170,7 +177,7 @@ struct parse_helper<std::set<T>>
 };
 
 template<typename K, typename V>
-struct parse_helper<std::map<K,V>>
+struct parse_helper<std::map<K, V>>
 	: lexy::scan_production<std::map<K, V>>
 {
 	template <typename Context, typename Reader>
