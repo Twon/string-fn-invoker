@@ -9,7 +9,7 @@ template<typename F>
 auto wrap_fn(F&& fn) {
 	return [f = std::move(fn)](std::string_view input) mutable
 	{
-		using args_as_tuple_t = typename  DecomposedCallable<std::decay_t<F>>::args_tuple_t;
+		using args_as_tuple_t = typename DecomposedCallable<std::decay_t<F>>::args_tuple_t;
 		args_as_tuple_t res;
 		auto begin = input.cbegin();
 		bool got_match = false;
@@ -17,12 +17,12 @@ auto wrap_fn(F&& fn) {
 			got_match = (begin == input.cend()); // zero arg match -> no parse but also input must be empty
 		else if constexpr (std::tuple_size_v<args_as_tuple_t> == 1)
 		{
-			//TODO - make more consistent... single arg Fns wont need args wrapped in parens, while multi arg Fns do...
 			// single arg functions get the inner type instead of a tuple eg. int instead of std::tuple<int>
 			got_match = parse_invocation(input, std::get<0>(res));
 		}
 		else
 		{
+			//TODO - make more consistent... single arg Fns wont need args wrapped in parens, while multi arg Fns do...
 			// we need to have a match and no leftovers in order to assume we had a correct parse
 			got_match = parse_invocation(input, res);
 		}
@@ -36,7 +36,7 @@ auto wrap_fn(F&& fn) {
 }
 
 void qweqwe(std::string a, uint32_t b) {
-	int z = 0;
+	std::cout << "qweqwe invoked!\nWith Args:\n  a: " << a << "\n  b: " << b << "\n";
 }
 
 
