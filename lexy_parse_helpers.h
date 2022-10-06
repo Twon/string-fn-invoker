@@ -15,11 +15,14 @@
 #include <lexy/action/parse.hpp>
 #include <lexy/input/string_input.hpp>
 
+template<typename...>
+struct parse_helper;
+
 struct error_cb {
 	using return_type = void;
 	template<typename Ctx, typename Err>
-	void operator()(const Ctx& ctx, const Err& err) const {
-		auto dist = err.position() - m_input.data();
+	void operator()(const Ctx&, const Err& err) const {
+		[[maybe_unused]] auto dist = err.position() - m_input.data();
 	}
 	std::string_view m_input;
 };
@@ -41,9 +44,6 @@ bool parse_invocation(std::string_view input, T& out_val) {
 	out_val = std::move(result.value());
 	return true;
 }
-
-template<typename...>
-struct parse_helper;
 
 template<>
 struct parse_helper<uint32_t> {
