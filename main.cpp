@@ -37,12 +37,14 @@ auto wrap_fn(F&& fn) {
 	};
 }
 
-void qweqwe(std::string a, uint32_t b, float c) {
+
+void qweqwe(std::string a, uint32_t b, float c, std::vector<uint32_t> d) {
+	(void)d;
 	std::cout << "qweqwe invoked!\nWith Args:\n  a: " << a << "\n  b: " << b << "\n  c: " << c << "\n";
 }
 
 int main() {
 	auto ret = wrap_fn(&qweqwe);
-	ret(R"#( ("test", 123,-123.456e-2)      )#");
+	ret(R"#( ("test", 123,-123.456e-2,[123,123,123,444]   )      )#");
 	return 0;
 }
