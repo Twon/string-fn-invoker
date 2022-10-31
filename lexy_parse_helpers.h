@@ -192,3 +192,30 @@ struct parse_helper<std::map<K, V>> : lexy::scan_production<std::map<K, V>> {
 	static constexpr auto rule = lexy::dsl::scan;
 	static constexpr auto value = lexy::construct<std::map<K, V>>;
 };
+
+template <> struct parse_helper<float> : lexy::scan_production<float> {
+	template <typename Context, typename Reader>
+	static constexpr lexy::scan_result<float>
+	scan(lexy::rule_scanner<Context, Reader> &scanner) {
+		using namespace lexy::dsl;
+		auto sign_rule = opt(lit_c<'+'> | lit_c<'-'>);
+		auto digits_with_opt_sign = sign_rule + digits<>;
+		//TODO support P/p ofr power-of-2 exponents
+		auto exp_rule = opt((lit_c<'E'> | lit_c<'e'>) >> digits_with_opt_sign);
+		auto fract_rule_with_existing_integral = opt(lit_c<'.'> >> (opt(digits<>) + exp_rule));
+		auto fract_rule_with_non_existing_integral = lit_c<'.'> + digits<decimal> + exp_rule;
+		//TODO support  +- INF/INFINITY and +- NANs
+		//TODO support 0x(hex) representation
+		auto full_rule = sign_rule + ((digits<> >> fract_rule_with_existing_integral) | else_ >> fract_rule_with_non_existing_integral);
+		auto res = scanner.capture(token(full_rule));
+		if (!res)
+			return lexy::scan_failed;
+		const auto &val = res.value();
+		//TODO - this is obviously not performant, it's here for illustration purposes only
+		return stof(std::string(val.begin(), val.end()));
+	}
+
+	static constexpr auto whitespace = lexy::dsl::ascii::space;
+	static constexpr auto rule = lexy::dsl::scan;
+	static constexpr auto value = lexy::construct<float>;
+};
