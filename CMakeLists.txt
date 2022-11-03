@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 project(cpp-meetup-2022)
 
 include(FetchContent)
-FetchContent_Declare(lexy GIT_REPOSITORY git@github.com:foonathan/lexy.git GIT_TAG 5b7095dab03041b4daf7c6c521118645491b7062)
+FetchContent_Declare(lexy GIT_REPOSITORY https://github.com/foonathan/lexy.git GIT_TAG 5b7095dab03041b4daf7c6c521118645491b7062)
 FetchContent_MakeAvailable(lexy)
 
 add_executable(cpp-meetup-2022)
